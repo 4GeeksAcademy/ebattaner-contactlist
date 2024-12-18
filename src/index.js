@@ -16,7 +16,7 @@ root.render(
         <Route path="/" element={<App />} />
         <Route path="/agendas/:slug" element={<Agendasola />} />
         <Route
-          path="/agendas/:slug/Nuevocontacto"
+          path="/agendas/:slug/Nuevocontacto/"
           element={<Nuevocontacto />}
         />
         <Route

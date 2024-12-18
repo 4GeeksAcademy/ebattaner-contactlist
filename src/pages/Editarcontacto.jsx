@@ -15,51 +15,70 @@ const Editarcontacto = () => {
 
   const url = "https://playground.4geeks.com";
   const { slug, id } = useParams();
-  const getContactUrl = `${url}/agendas/${slug}/contacts/${id}`;
+  const getslug = `${url}/agendas/${slug}/contacts/`;
+  const deleteslug = `${url}/agendas/${slug}/contacts/${id}`;
 
+  // Cargar los datos del contacto si existe un ID
   useEffect(() => {
-    fetch(getContactUrl)
+    fetch(deleteslug)
       .then((response) => {
         if (!response.ok) {
-          throw new Error("Error al obtener los datos del contacto");
+          throw new Error("No se pudo obtener el contacto");
         }
         return response.json();
       })
       .then((data) => {
-        setNomApe(data.name || "");
-        setEmail(data.email || "");
-        setTelefono(data.phone || "");
-        setDireccion(data.address || "");
+        setNomApe(data.name);
+        setEmail(data.email);
+        setTelefono(data.phone);
+        setDireccion(data.address);
       })
-      .catch((error) => console.error("Error en el GET:", error));
-  }, [getContactUrl]);
+      .catch((error) => console.error(error.message));
+  }, []);
 
-  const editarUsuario = (e) => {
+  const nuevoUsuario = async (e) => {
     e.preventDefault();
 
-    const editarContacto = {
+    const nuevoContacto = {
       name: nomApe,
-      email: email,
       phone: telefono,
+      email: email,
       address: direccion,
     };
 
-    fetch(getContactUrl, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(editarContacto),
-    })
-      .then((response) => {
-        if (!response.ok) {
-          throw new Error("Error al actualizar el contacto");
+    try {
+      // Eliminar el contacto existente si hay un ID
+      if (id) {
+        const deleteResponse = await fetch(deleteslug, {
+          method: "DELETE",
+        });
+        if (!deleteResponse.ok) {
+          throw new Error("Error al eliminar el contacto existente");
         }
-        return response.json();
-      })
-      .then((data) => {
-        console.log("Contacto actualizado correctamente:", data);
-        alert("El contacto se ha actualizado con éxito.");
-      })
-      .catch((error) => console.error("Error en el PUT:", error));
+        console.log("Contacto eliminado correctamente");
+      }
+
+      // Crear un nuevo contacto
+      const postResponse = await fetch(getslug, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(nuevoContacto),
+      });
+
+      if (!postResponse.ok) {
+        throw new Error("Error al crear el nuevo contacto");
+      }
+
+      console.log("Nuevo contacto creado correctamente");
+
+      // Resetear los valores del formulario
+      setNomApe("");
+      setEmail("");
+      setTelefono("");
+      setDireccion("");
+    } catch (error) {
+      console.error(error.message);
+    }
   };
 
   return (
@@ -69,7 +88,7 @@ const Editarcontacto = () => {
           <Button variant="danger" className="p-2 m-2">
             <NavLink to={`/agendas/${slug}`}>Atrás</NavLink>
           </Button>
-          <Form onSubmit={editarUsuario}>
+          <Form onSubmit={nuevoUsuario}>
             <Form.Group className="mb-3" controlId="formGroupName">
               <Form.Label>Nombre y Apellidos</Form.Label>
               <Form.Control
@@ -111,7 +130,7 @@ const Editarcontacto = () => {
             </Form.Group>
 
             <Button variant="primary" type="submit">
-              Guardar Cambios
+              Enviar
             </Button>
           </Form>
         </Col>
