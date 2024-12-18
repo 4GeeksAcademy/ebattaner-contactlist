@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import Button from "react-bootstrap/Button";
 import Col from "react-bootstrap/Col";
 import Form from "react-bootstrap/Form";
@@ -14,29 +14,11 @@ const Editarcontacto = () => {
   const [direccion, setDireccion] = useState("");
 
   const url = "https://playground.4geeks.com";
-  const { slug, id } = useParams();
+  let { slug, id } = useParams();
   const getslug = `${url}/agendas/${slug}/contacts/`;
   const deleteslug = `${url}/agendas/${slug}/contacts/${id}`;
 
-  // Cargar los datos del contacto si existe un ID
-  useEffect(() => {
-    fetch(deleteslug)
-      .then((response) => {
-        if (!response.ok) {
-          throw new Error("No se pudo obtener el contacto");
-        }
-        return response.json();
-      })
-      .then((data) => {
-        setNomApe(data.name);
-        setEmail(data.email);
-        setTelefono(data.phone);
-        setDireccion(data.address);
-      })
-      .catch((error) => console.error(error.message));
-  }, []);
-
-  const nuevoUsuario = async (e) => {
+  const nuevoUsuario = (e) => {
     e.preventDefault();
 
     const nuevoContacto = {
@@ -45,40 +27,31 @@ const Editarcontacto = () => {
       email: email,
       address: direccion,
     };
+    console.log(nuevoContacto);
 
-    try {
-      // Eliminar el contacto existente si hay un ID
-      if (id) {
-        const deleteResponse = await fetch(deleteslug, {
+    const eliminaUsuario = () => {
+      fetch(
+        `https://playground.4geeks.com/contact/agendas/${slug}/contacts/${id}`,
+        {
           method: "DELETE",
-        });
-        if (!deleteResponse.ok) {
-          throw new Error("Error al eliminar el contacto existente");
-        }
-        console.log("Contacto eliminado correctamente");
-      }
+        },
+      );
+    };
 
-      // Crear un nuevo contacto
-      const postResponse = await fetch(getslug, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(nuevoContacto),
+    fetch(`https://playground.4geeks.com/contact/agendas/${slug}/contacts/`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(nuevoContacto),
+    })
+      .then(() => {
+        setNomApe("");
+        setEmail("");
+        setTelefono("");
+        setDireccion("");
+      })
+      .then(() => {
+        eliminaUsuario();
       });
-
-      if (!postResponse.ok) {
-        throw new Error("Error al crear el nuevo contacto");
-      }
-
-      console.log("Nuevo contacto creado correctamente");
-
-      // Resetear los valores del formulario
-      setNomApe("");
-      setEmail("");
-      setTelefono("");
-      setDireccion("");
-    } catch (error) {
-      console.error(error.message);
-    }
   };
 
   return (
@@ -88,7 +61,7 @@ const Editarcontacto = () => {
           <Button variant="danger" className="p-2 m-2">
             <NavLink to={`/agendas/${slug}`}>Atrás</NavLink>
           </Button>
-          <Form onSubmit={nuevoUsuario}>
+          <Form>
             <Form.Group className="mb-3" controlId="formGroupName">
               <Form.Label>Nombre y Apellidos</Form.Label>
               <Form.Control
@@ -129,7 +102,7 @@ const Editarcontacto = () => {
               />
             </Form.Group>
 
-            <Button variant="primary" type="submit">
+            <Button variant="primary" type="submit" onClick={nuevoUsuario}>
               Enviar
             </Button>
           </Form>
